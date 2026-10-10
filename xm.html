@@ -1,0 +1,328 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>মানবিক ভর্তি পরীক্ষা কাউন্টডাউন</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Tiro+Bangla&display=swap">
+<style>
+/* Layout: one column; the selected exam floats on top with full details, then a month-grouped list where the days-left number leads every card. */
+:root{
+  --bg:#f3f6f4; --surface:#ffffff; --fg:#14231d; --muted:#5b6b64; --line:#d5ddd8;
+  --accent:#0b6b4f; --accent-soft:#dcefe7; --warn:#b3261e; --warn-soft:#fbe4e1; --other:#7a5a00; --other-soft:#f6ecc9;
+  --hero:#2f6b55; --hero-fg:#f4faf7; --hero-chip:#ffffff24;
+  --display:"Tiro Bangla","Noto Serif Bengali",serif;
+  --body:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1714; --surface:#17221e; --fg:#e7efeb; --muted:#9aaba3; --line:#2b3a34;
+  --accent:#5fcfa6; --accent-soft:#16372c; --warn:#ff8a80; --warn-soft:#40201d; --other:#e6c35a; --other-soft:#3a3113;
+  --hero:#1f5241; --hero-fg:#f4faf7; --hero-chip:#ffffff1f; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f1714; --surface:#17221e; --fg:#e7efeb; --muted:#9aaba3; --line:#2b3a34;
+  --accent:#5fcfa6; --accent-soft:#16372c; --warn:#ff8a80; --warn-soft:#40201d; --other:#e6c35a; --other-soft:#3a3113;
+  --hero:#1f5241; --hero-fg:#f4faf7; --hero-chip:#ffffff1f; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:28px 48px}
+.wrap{max-width:780px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.2;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.hero{background:var(--hero);color:var(--hero-fg);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:12px}
+.hero-top{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;justify-content:space-between}
+.hero .lbl{font-size:.85rem;opacity:.85}
+.hero .nm{font-family:var(--display);font-size:1.6rem;line-height:1.25}
+.hero .when{opacity:.92;font-size:.95rem}
+.clock{display:flex;gap:14px;font-variant-numeric:tabular-nums}
+.clock div{text-align:center;min-width:48px}
+.clock b{display:block;font-size:1.9rem;font-weight:700;line-height:1.1}
+.clock span{font-size:.75rem;opacity:.85}
+.detail{border-top:1px solid var(--hero-chip);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.detail .hnote{font-size:.93rem;opacity:.95}
+.grp h3{font-size:.8rem;font-weight:600;margin:0 0 6px;opacity:.85}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.hero .chip{background:var(--hero-chip);color:var(--hero-fg)}
+.chip{font-size:.82rem;padding:2px 10px;border-radius:999px;background:var(--bg);color:var(--fg);border:1px solid transparent}
+.row .chip{border-color:var(--line)}
+.chip.more{background:transparent;color:var(--accent);font-weight:600;border-color:transparent;padding-inline:4px}
+.back{align-self:flex-start;background:transparent;color:var(--hero-fg);border:1px solid var(--hero-chip);border-radius:999px;padding:5px 14px;cursor:pointer;font-size:.88rem}
+
+.controls{display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .cap{font-size:.82rem;color:var(--muted);min-width:64px}
+.bar button{font-weight:500;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.bar button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+#list{display:flex;flex-direction:column;gap:20px}
+h2{font-size:.85rem;font-weight:600;color:var(--muted);margin:0 0 8px;letter-spacing:.02em}
+.cards{display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:14px 16px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:14px;cursor:pointer;text-align:left;color:inherit;width:100%;transition:border-color .15s,transform .15s}
+.row:hover{border-color:var(--accent)}
+.row.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.row.sel .chip{background:var(--surface)}
+.bar button:disabled{opacity:.6;cursor:default}
+.empty{color:var(--muted);margin:0}
+@media (prefers-reduced-motion:no-preference){.row:active{transform:scale(.995)}}
+.days{text-align:center;font-variant-numeric:tabular-nums;padding-top:2px}
+.days b{display:block;font-size:1.75rem;font-weight:700;line-height:1.05;color:var(--accent)}
+.days span{font-size:.75rem;color:var(--muted)}
+.days em{display:block;font-style:normal;font-size:.74rem;font-weight:600;color:var(--fg);margin-top:4px;line-height:1.25}
+.cwrap{display:flex;flex-direction:column;gap:8px}
+.mo{font-size:.9rem;font-weight:500;text-align:center;border-top:1px solid var(--hero-chip);padding-top:6px}
+.row.soon .days b{color:var(--warn)}
+.row.done{opacity:.55}
+.row.done .days b{font-size:1rem;color:var(--muted)}
+.info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.name{font-weight:600;font-size:1.08rem}
+.meta{color:var(--muted);font-size:.93rem;display:flex;flex-wrap:wrap;gap:2px 14px}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 9px;border-radius:999px;margin-left:6px;vertical-align:2px;white-space:nowrap}
+.tag.m{background:var(--accent-soft);color:var(--accent)}
+.tag.o{background:var(--other-soft);color:var(--other)}
+.row .chips{margin-top:4px}
+.place{font-size:.9rem}
+.place b{font-weight:600}
+.where p{margin:0 0 4px;font-size:.93rem}
+.where b{font-weight:600}
+footer{color:var(--muted);font-size:.87rem;border-top:1px solid var(--line);padding-top:16px}
+footer p{margin:0 0 6px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>মানবিক শাখার ভর্তি পরীক্ষা</h1>
+    <p class="sub">২০২৬–২৭ শিক্ষাবর্ষ · আজ <span id="today"></span> · মোট <span id="count"></span>টি পরীক্ষা · কার্ডে চাপ দিলে বিস্তারিত উপরে দেখাবে</p>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="lbl" id="hLbl"></div>
+        <div class="nm" id="hName"></div>
+        <div class="when" id="hWhen"></div>
+      </div>
+      <div class="cwrap"><div class="clock">
+        <div><b id="cd"></b><span>দিন</span></div>
+        <div><b id="ch"></b><span>ঘণ্টা</span></div>
+        <div><b id="cm"></b><span>মিনিট</span></div>
+        <div><b id="cs"></b><span>সেকেন্ড</span></div>
+      </div><div class="mo" id="hMo"></div></div>
+    </div>
+    <div class="detail" id="hDetail"></div>
+    <button class="back" id="hBack" hidden>সবচেয়ে কাছের পরীক্ষায় ফিরে যাও</button>
+  </section>
+
+  <div class="controls">
+    <div class="bar" role="group" aria-label="সাজানো">
+      <span class="cap">সাজাও</span>
+      <button id="s-near" aria-pressed="true" data-s="near">সবচেয়ে কাছের আগে</button>
+      <button id="s-far" aria-pressed="false" data-s="far">সবচেয়ে দূরের আগে</button>
+    </div>
+    <div class="bar" role="group" aria-label="ফিল্টার">
+      <span class="cap">দেখাও</span>
+      <button id="f-all" aria-pressed="true" data-f="all">সব</button>
+      <button id="f-m" aria-pressed="false" data-f="m">শুধু মানবিক ইউনিট</button>
+      <button id="f-o" aria-pressed="false" data-f="o">অন্য ইউনিট</button>
+    </div>
+    <div class="bar" role="group" aria-label="শেষ হওয়া পরীক্ষা">
+      <span class="cap">শেষ হলে</span>
+      <button id="t-done" aria-pressed="false"></button>
+    </div>
+  </div>
+
+  <main id="list"></main>
+
+  <footer>
+    <p><b>বাকি দিন</b> গোনা হয়েছে বাংলাদেশ সময় অনুযায়ী আজকের তারিখ থেকে পরীক্ষার তারিখ পর্যন্ত। পেজ খুললেই নিজে থেকে আপডেট হয়।</p>
+    <p>তারিখ ও সময় তোমার দেওয়া রুটিনের ছবি থেকে নেওয়া। কিছু তারিখ এখনো সম্ভাব্য (যেমন রাবি)।</p>
+    <p>বিষয়ের তালিকা আগের বছরগুলোর ইউনিট কাঠামো অনুযায়ী দেওয়া। এ বছর বিভাগ যোগ বা বাদ হতে পারে, আর কিছু বিভাগে মানবিক থেকে ভর্তির আলাদা শর্ত থাকে। আবেদনের আগে অফিসিয়াল ভর্তি নির্দেশিকা মিলিয়ে নিও।</p>
+    <p>কেন্দ্রের তথ্য সংবাদমাধ্যমের খবর ও বিশ্ববিদ্যালয়ের বিজ্ঞপ্তি থেকে নেওয়া (১০ অক্টোবর ২০২৬ পর্যন্ত)। খুবি, SUST, BUP ও গুচ্ছ এবারের কেন্দ্র এখনো জানায়নি।</p>
+    <p>সার্কুলার প্রকাশের নির্দিষ্ট তারিখ কোনো বিশ্ববিদ্যালয় ঘোষণা করেনি। যাদের আবেদন নভেম্বরে শুরু, তাদের সার্কুলার সাধারণত তার ঠিক আগে আসে।</p>
+    <p>চবি B2 উপ-ইউনিট কোন বিভাগের জন্য তা নিশ্চিত করা যায়নি, তাই তালিকায় রাখা হয়নি (৪ ফেব্রুয়ারি ২০২৭, সকাল ১১টা)।</p>
+  </footer>
+</div>
+
+<script>
+// t: "m" = মানবিক ইউনিট, "o" = অন্য ইউনিট যেখানে মানবিক থেকে আবেদন করা যায়
+// s: [দলের নাম, "বিষয়, বিষয়, ..."]
+const EXAMS=[
+ {n:"ঢাবি (IBA)",d:"2026-12-05",h:10,mi:0,t:"o",note:"সব গ্রুপের শিক্ষার্থী আবেদন করতে পারে।",
+  s:[["ব্যবসায় প্রশাসন ইনস্টিটিউট","বিবিএ (BBA)"]]},
+ {n:"খুবি (C) – মানবিক",d:"2026-12-17",h:13,mi:30,t:"m",note:"কলা ও মানবিক, সামাজিক বিজ্ঞান, আইন, শিক্ষা ও চারুকলা স্কুল।",
+  s:[["কলা ও মানবিক","বাংলা, ইংরেজি, ইতিহাস ও সভ্যতা"],["সামাজিক বিজ্ঞান","অর্থনীতি, সমাজবিজ্ঞান, উন্নয়ন অধ্যয়ন, গণযোগাযোগ ও সাংবাদিকতা"],["আইন ও শিক্ষা","আইন, শিক্ষা (IER)"],["চারুকলা","ড্রইং অ্যান্ড পেইন্টিং, প্রিন্টমেকিং, ভাস্কর্য"]]},
+ {n:"ঢাবি (B) – মানবিক",d:"2026-12-19",h:11,mi:0,t:"m",note:"কলা, আইন ও সামাজিক বিজ্ঞান ইউনিট।",
+  s:[["কলা অনুষদ","বাংলা, ইংরেজি, ইতিহাস, দর্শন, ইসলামের ইতিহাস ও সংস্কৃতি, ইসলামিক স্টাডিজ, আরবি, ফারসি, উর্দু, সংস্কৃত, পালি ও বুদ্ধিস্ট স্টাডিজ, ভাষাবিজ্ঞান, তথ্যবিজ্ঞান ও গ্রন্থাগার ব্যবস্থাপনা, থিয়েটার অ্যান্ড পারফরম্যান্স স্টাডিজ, সংগীত, নৃত্যকলা, বিশ্বধর্ম ও সংস্কৃতি"],
+     ["সামাজিক বিজ্ঞান অনুষদ","অর্থনীতি, রাষ্ট্রবিজ্ঞান, আন্তর্জাতিক সম্পর্ক, সমাজবিজ্ঞান, গণযোগাযোগ ও সাংবাদিকতা, লোকপ্রশাসন, নৃবিজ্ঞান, উন্নয়ন অধ্যয়ন, অপরাধবিজ্ঞান, শান্তি ও সংঘর্ষ অধ্যয়ন, উইমেন অ্যান্ড জেন্ডার স্টাডিজ, পপুলেশন সায়েন্সেস, টেলিভিশন চলচ্চিত্র ও ফটোগ্রাফি, জাপানিজ স্টাডিজ"],
+     ["আইন ও অন্যান্য","আইন, সমাজকল্যাণ, শিক্ষা (IER), আধুনিক ভাষা, ভূগোল ও পরিবেশ, মনোবিজ্ঞান"]]},
+ {n:"ঢাবি (C) – বাণিজ্য",d:"2026-12-26",h:12,mi:0,t:"o",note:"মানবিক থেকে আবেদন করা যায়, তবে মোট জিপিএর শর্ত আলাদা এবং আসন সীমিত।",
+  s:[["ব্যবসায় শিক্ষা অনুষদ","অ্যাকাউন্টিং অ্যান্ড ইনফরমেশন সিস্টেমস, ফিন্যান্স, মার্কেটিং, ম্যানেজমেন্ট, ব্যাংকিং অ্যান্ড ইনস্যুরেন্স, ম্যানেজমেন্ট ইনফরমেশন সিস্টেমস, ইন্টারন্যাশনাল বিজনেস, ট্যুরিজম অ্যান্ড হসপিটালিটি ম্যানেজমেন্ট, অর্গানাইজেশন স্ট্র্যাটেজি অ্যান্ড লিডারশিপ"]]},
+ {n:"BUP (FBS)",d:"2027-01-01",h:10,mi:30,t:"o",note:"বিজনেস স্টাডিজ অনুষদ। মানবিক গ্রুপ আবেদন করতে পারে।",
+  s:[["বিবিএ","বিবিএ জেনারেল, অ্যাকাউন্টিং অ্যান্ড ইনফরমেশন সিস্টেমস, ফিন্যান্স অ্যান্ড ব্যাংকিং, মার্কেটিং, ম্যানেজমেন্ট স্টাডিজ"]]},
+ {n:"BUP (FASS)",d:"2027-01-02",h:15,mi:30,t:"m",note:"আর্টস অ্যান্ড সোশ্যাল সায়েন্স অনুষদ।",
+  s:[["অনার্স","ইংরেজি, অর্থনীতি, ডেভেলপমেন্ট স্টাডিজ, পাবলিক অ্যাডমিনিস্ট্রেশন, সমাজবিজ্ঞান, ডিজাস্টার ম্যানেজমেন্ট অ্যান্ড রেজিলিয়েন্স"]]},
+ {n:"জবি (E) – চারু",d:"2027-01-08",h:10,mi:0,t:"o",note:"চারুকলা অনুষদ। লিখিতের সাথে ব্যবহারিক (অঙ্কন) পরীক্ষা থাকে। একই দিন বিকালে BUP (FSSS)।",
+  s:[["চারুকলা অনুষদ","ড্রইং অ্যান্ড পেইন্টিং, প্রিন্টমেকিং, ভাস্কর্য"]]},
+ {n:"BUP (FSSS)",d:"2027-01-08",h:15,mi:30,t:"m",note:"সিকিউরিটি অ্যান্ড স্ট্র্যাটেজিক স্টাডিজ অনুষদ। একই দিন সকালে জবি (E)।",
+  s:[["অনার্স","আন্তর্জাতিক সম্পর্ক, আইন (এলএলবি), গণযোগাযোগ ও সাংবাদিকতা, পিস কনফ্লিক্ট অ্যান্ড হিউম্যান রাইটস"]]},
+ {n:"জবি (B) – মানবিক",d:"2027-01-15",h:10,mi:0,t:"m",note:"কলা ও আইন অনুষদ।",
+  s:[["কলা অনুষদ","বাংলা, ইংরেজি, ইতিহাস, ইসলামের ইতিহাস ও সংস্কৃতি, ইসলামিক স্টাডিজ, দর্শন, সংগীত, নাট্যকলা"],["আইন ও অন্যান্য","আইন, ভূমি ব্যবস্থাপনা ও আইন, শিক্ষা (IER), আধুনিক ভাষা"]]},
+ {n:"রাবি (A) – মানবিক",d:"2027-01-16",h:11,mi:0,t:"m",note:"তারিখ সম্ভাব্য। কলা, আইন, সামাজিক বিজ্ঞান, চারুকলা অনুষদ ও শিক্ষা ইনস্টিটিউট।",
+  s:[["কলা অনুষদ","বাংলা, ইংরেজি, ইতিহাস, দর্শন, ইসলামের ইতিহাস ও সংস্কৃতি, ইসলামিক স্টাডিজ, আরবি, ফারসি, উর্দু, সংস্কৃত, সংগীত, নাট্যকলা"],
+     ["সামাজিক বিজ্ঞান অনুষদ","অর্থনীতি, রাষ্ট্রবিজ্ঞান, সমাজবিজ্ঞান, সমাজকর্ম, গণযোগাযোগ ও সাংবাদিকতা, লোকপ্রশাসন, নৃবিজ্ঞান, আন্তর্জাতিক সম্পর্ক, ফোকলোর, তথ্যবিজ্ঞান ও গ্রন্থাগার ব্যবস্থাপনা"],
+     ["আইন, চারুকলা ও শিক্ষা","আইন, আইন ও ভূমি প্রশাসন, চারুকলা অনুষদের বিভাগসমূহ, শিক্ষা (IER)"]]},
+ {n:"জবি (D) – সমাজবিজ্ঞান",d:"2027-01-23",h:10,mi:0,t:"o",note:"সব গ্রুপের শিক্ষার্থী দিতে পারে।",
+  s:[["সামাজিক বিজ্ঞান অনুষদ","অর্থনীতি, রাষ্ট্রবিজ্ঞান, সমাজবিজ্ঞান, সমাজকর্ম, নৃবিজ্ঞান, গণযোগাযোগ ও সাংবাদিকতা, লোকপ্রশাসন, অপরাধবিজ্ঞান ও পুলিশ বিজ্ঞান, ফিল্ম অ্যান্ড টেলিভিশন"]]},
+ {n:"SUST B",d:"2027-01-27",h:15,mi:0,t:"m",note:"বিজ্ঞান, মানবিক ও বাণিজ্য গ্রুপ একসাথে পরীক্ষা দেয়।",
+  s:[["সামাজিক বিজ্ঞান ও কলা","অর্থনীতি, ইংরেজি, বাংলা, নৃবিজ্ঞান, পলিটিক্যাল স্টাডিজ, লোকপ্রশাসন, সমাজবিজ্ঞান, সমাজকর্ম"],["ব্যবস্থাপনা","ব্যবসায় প্রশাসন (বিবিএ)"]]},
+ {n:"চবি (B1)",d:"2027-02-03",h:11,mi:0,t:"o",note:"উপ-ইউনিট। শুধু চবি ক্যাম্পাসে পরীক্ষা হয়, ব্যবহারিক পরীক্ষা থাকে।",
+  s:[["কলা অনুষদ","নাট্যকলা, সংগীত, চারুকলা"]]},
+ {n:"চবি (B) – মানবিক",d:"2027-02-05",h:11,mi:0,t:"m",note:"কলা ও মানববিদ্যা অনুষদ।",
+  s:[["কলা ও মানববিদ্যা অনুষদ","বাংলা, ইংরেজি, ইতিহাস, ইসলামের ইতিহাস ও সংস্কৃতি, দর্শন, আরবি, ইসলামিক স্টাডিজ, ফারসি, পালি, সংস্কৃত, বাংলাদেশ স্টাডিজ"],["ইনস্টিটিউট","আধুনিক ভাষা, শিক্ষা ও গবেষণা (IER)"]]},
+ {n:"চবি (D) – সমাজবিজ্ঞান",d:"2027-02-06",h:11,mi:0,t:"o",note:"সব গ্রুপের শিক্ষার্থী দিতে পারে।",
+  s:[["সমাজবিজ্ঞান অনুষদ","অর্থনীতি, রাজনীতি বিজ্ঞান, সমাজতত্ত্ব, লোকপ্রশাসন, নৃবিজ্ঞান, আন্তর্জাতিক সম্পর্ক, যোগাযোগ ও সাংবাদিকতা, ডেভেলপমেন্ট স্টাডিজ, ক্রিমিনোলজি অ্যান্ড পুলিশ সায়েন্স"],
+     ["অন্যান্য অনুষদ","আইন, ব্যবসায় প্রশাসন অনুষদের সব বিভাগ, ভূগোল ও পরিবেশবিদ্যা, মনোবিজ্ঞান"]]},
+ {n:"চবি (D1)",d:"2027-02-08",h:11,mi:0,t:"o",note:"উপ-ইউনিট। শুধু চবি ক্যাম্পাসে পরীক্ষা হয়, শারীরিক সক্ষমতার পরীক্ষা থাকে।",
+  s:[["শিক্ষা অনুষদ","ফিজিক্যাল এডুকেশন অ্যান্ড স্পোর্টস সায়েন্স"]]},
+ {n:"গুচ্ছ B – মানবিক",d:"2027-03-19",h:10,mi:0,t:"m",note:"গুচ্ছভুক্ত সাধারণ এবং বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়। কোন বিষয় পাওয়া যাবে তা বিশ্ববিদ্যালয়ভেদে আলাদা। সময় নিয়ে অমিল আছে: রুটিনের ছবিতে সকাল ১০টা, কিন্তু খবরে বেলা ১১টা থেকে ১২টা।",
+  s:[["সাধারণত যে বিষয়গুলো থাকে","বাংলা, ইংরেজি, অর্থনীতি, রাষ্ট্রবিজ্ঞান, সমাজবিজ্ঞান, সমাজকর্ম, লোকপ্রশাসন, নৃবিজ্ঞান, আইন, ইতিহাস, দর্শন, গণযোগাযোগ ও সাংবাদিকতা, ইসলামিক স্টাডিজ, ইসলামের ইতিহাস ও সংস্কৃতি, ফোকলোর, চারুকলা, সংগীত, নাট্যকলা"]]}
+];
+// কেন্দ্র: [এবার ২০২৬-২৭, আগের বছরগুলো]
+const DU_NOW="ঢাকা + বিভাগীয় কেন্দ্র: রাবি, চবি, বরিশাল বিশ্ববিদ্যালয়, খুবি, শাবিপ্রবি, বাকৃবি (ময়মনসিংহ), বেগম রোকেয়া (রংপুর)";
+const DU_OLD="২০২৫-২৬: ঢাকা + বিভাগীয় কেন্দ্র";
+const BUP_NOW="কেন্দ্রের তালিকা এখনো পাওয়া যায়নি", BUP_OLD="২০২৫-২৬: ১২টি কেন্দ্র, সব ঢাকায় (BUP, MIST, মিরপুর ও ঢাকা ক্যান্টনমেন্টের স্কুল-কলেজ)";
+const CU_NOW="চবি, ঢাবি ও রাবি ক্যাম্পাস", CU_OLD="২০২৫-২৬: চবি, ঢাবি ও রাবি ক্যাম্পাস";
+const CU_SUB="শুধু চবি ক্যাম্পাস", CU_SUB_OLD="২০২৫-২৬: কোন ক্যাম্পাসে হয়েছিল তা খবরে পাওয়া যায়নি";
+const C={
+ "ঢাবি (IBA)":["খবরে কেন্দ্রের উল্লেখ নেই","খবরে কেন্দ্রের উল্লেখ নেই"],
+ "খুবি (C) – মানবিক":["এখনো ঘোষণা হয়নি","২০২৪-২৫: খুলনা, ঢাকা (বুয়েট), রাজশাহী (রুয়েট) · ২০২৫-২৬: খুলনা, ঢাকা, রাজশাহী, চট্টগ্রাম। আবেদনের সময় কেন্দ্র বাছতে হয়।"],
+ "ঢাবি (B) – মানবিক":[DU_NOW,DU_OLD],
+ "ঢাবি (C) – বাণিজ্য":[DU_NOW,DU_OLD],
+ "BUP (FBS)":[BUP_NOW,BUP_OLD],"BUP (FASS)":[BUP_NOW,BUP_OLD],"BUP (FSSS)":[BUP_NOW,BUP_OLD],
+ "জবি (E) – চারু":["শুধু ঢাকা","২০২৫-২৬: শুধু ঢাকা"],
+ "জবি (B) – মানবিক":["শুধু ঢাকা (এবার ঢাকার বাইরে কেন্দ্র নেই)","২০২৪-২৫: ১৩ কেন্দ্র, ঢাকার ১০টি + রাবি, খুবি, কুমিল্লা বিশ্ববিদ্যালয় · ২০২৫-২৬: ঢাকা + রাজশাহী, খুলনা, কুমিল্লা"],
+ "রাবি (A) – মানবিক":["ঢাকা, রাজশাহী, রংপুর, খুলনা, চট্টগ্রাম, সিলেট, ময়মনসিংহ; বরিশালও যোগ করার প্রস্তাব (সম্ভাব্য)","২০২৫-২৬: রাজশাহী, ঢাকা, চট্টগ্রাম, খুলনা, রংপুর, বরিশাল"],
+ "জবি (D) – সমাজবিজ্ঞান":["শুধু ঢাকা","২০২৫-২৬: শুধু ঢাকা"],
+ "SUST B":["এখনো ঘোষণা হয়নি","২০২৪-২৫: ৫টি বিভাগীয় শহর · ২০২৫-২৬: সিলেট ও ঢাকা (একটি মাত্র সূত্র থেকে, নিশ্চিত নয়)"],
+ "চবি (B1)":[CU_SUB,CU_SUB_OLD],
+ "চবি (B) – মানবিক":[CU_NOW,CU_OLD],
+ "চবি (D) – সমাজবিজ্ঞান":[CU_NOW,CU_OLD],
+ "চবি (D1)":[CU_SUB,CU_SUB_OLD],
+ "গুচ্ছ B – মানবিক":["২০টি বিশ্ববিদ্যালয়; কেন্দ্র পরে জানানো হবে","২০২৫-২৬: সারাদেশে ২১টি কেন্দ্র"]
+};
+// আবেদন: [এবারের আবেদনের সময়, সার্কুলার নিয়ে যা জানা আছে] — নামের শুরু দিয়ে মেলানো
+const LATER="শুধু পরীক্ষার তারিখ দিয়েছে; বিস্তারিত পরে বিজ্ঞপ্তিতে জানাবে";
+const A=[
+ ["ঢাবি",["১১–২৫ নভেম্বর ২০২৬","আবেদনের তারিখ ঘোষিত"]],
+ ["রাবি",["১২–২৭ নভেম্বর ২০২৬ (প্রস্তাবিত)","গতবার বিজ্ঞপ্তি বেরিয়েছিল ৬ নভেম্বর ২০২৫, আবেদন শুরু ২০ নভেম্বর"]],
+ ["জবি",["১৫ নভেম্বর – ১০ ডিসেম্বর ২০২৬","আবেদনের তারিখ ঘোষিত"]],
+ ["চবি",["১৫ নভেম্বর – ১০ ডিসেম্বর ২০২৬","আবেদনের তারিখ ঘোষিত"]],
+ ["খুবি",["এখনো জানানো হয়নি",LATER]],
+ ["SUST",["এখনো জানানো হয়নি",LATER]],
+ ["গুচ্ছ",["এখনো জানানো হয়নি","আবেদন, ফি ও কেন্দ্র পরে বিজ্ঞপ্তিতে জানাবে"]],
+ ["BUP",["নির্ভরযোগ্য তথ্য পাওয়া যায়নি","গতবার নোটিশ বেরিয়েছিল ৮ নভেম্বর ২০২৫, আবেদন ১০–৩০ নভেম্বর ২০২৫"]]
+];
+const BN="০১২৩৪৫৬৭৮৯", bn=x=>String(x).replace(/\d/g,c=>BN[c]);
+const MON=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const DAY=["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
+const OFF=6*3600e3; // Asia/Dhaka = UTC+6
+const p2=x=>String(x).padStart(2,"0"), $=id=>document.getElementById(id);
+EXAMS.forEach((e,i)=>{const[y,m,d]=e.d.split("-").map(Number);e.i=i;e.y=y;e.m=m;e.dd=d;
+  e.ts=Date.UTC(y,m-1,d,e.h,e.mi)-OFF; e.dayNo=Date.UTC(y,m-1,d)/864e5; e.wd=new Date(Date.UTC(y,m-1,d)).getUTCDay();
+  e.c=C[e.n]||["তথ্য নেই","তথ্য নেই"];
+  e.a=(A.find(x=>e.n.startsWith(x[0]))||[0,["তথ্য নেই","তথ্য নেই"]])[1];
+  e.subs=e.s.map(g=>[g[0],g[1].split(", ")]); e.flat=e.subs.flatMap(g=>g[1]);});
+function timeBn(e){const hr=e.h%12||12;const part=e.h<12?"সকাল":e.h<15?"দুপুর":"বিকাল";return part+" "+bn(hr)+":"+bn(p2(e.mi));}
+function dateBn(e){return bn(e.dd)+" "+MON[e.m-1]+" "+bn(e.y)+", "+DAY[e.wd];}
+function chip(txt,cls){const c=document.createElement("span");c.className="chip"+(cls?" "+cls:"");c.textContent=txt;return c;}
+// আজ থেকে পরীক্ষার তারিখ পর্যন্ত ক্যালেন্ডার মাস + বাকি দিন; এক মাসের কম হলে ""
+function monthsLeft(todayNo,e){
+  const t=new Date(todayNo*864e5), y=t.getUTCFullYear(), m=t.getUTCMonth(), d=t.getUTCDate();
+  let mo=(e.y-y)*12+(e.m-1-m); if(e.dd<d)mo--;
+  if(mo<1)return "";
+  const dim=new Date(Date.UTC(y,m+mo+1,0)).getUTCDate();
+  const rem=e.dayNo-Date.UTC(y,m+mo,Math.min(d,dim))/864e5;
+  return bn(mo)+" মাস"+(rem>0?" "+bn(rem)+" দিন":"");
+}
+let filter="all", sort="near", picked=null, hideDone=true;
+try{if(localStorage.getItem("hideDone")==="0")hideDone=false;}catch(_){}
+const nearest=()=>EXAMS.find(e=>e.ts>Date.now())||null;
+const current=()=>picked!==null?EXAMS[picked]:nearest();
+
+function renderHero(){
+  const e=current(), near=nearest(), d=$("hDetail");
+  d.innerHTML="";
+  if(!e){$("hLbl").textContent="";$("hName").textContent="সব পরীক্ষা শেষ";$("hWhen").textContent="";$("hMo").textContent="";d.hidden=true;$("hBack").hidden=true;return;}
+  $("hLbl").textContent=(near&&e.i===near.i?"সবচেয়ে কাছের পরীক্ষা":"বাছাই করা পরীক্ষা")+" · "+(e.t==="m"?"মানবিক ইউনিট":"অন্য ইউনিট");
+  $("hName").textContent=e.n; $("hWhen").textContent=dateBn(e)+" · "+timeBn(e);
+  const hm=monthsLeft(Math.floor((Date.now()+OFF)/864e5),e); $("hMo").textContent=hm?"মাসের হিসাবে "+hm+" বাকি":"এক মাসেরও কম বাকি";
+  d.hidden=false;
+  if(e.note){const n=document.createElement("div");n.className="hnote";n.textContent=e.note;d.appendChild(n);}
+  const w=document.createElement("div");w.className="grp where";
+  w.innerHTML='<h3>পরীক্ষা কোথায়</h3><p><b>এবার (২০২৬-২৭):</b> <span></span></p><p><b>আগে:</b> <span></span></p>';
+  const ws=w.querySelectorAll("span");ws[0].textContent=e.c[0];ws[1].textContent=e.c[1];d.appendChild(w);
+  const ap=document.createElement("div");ap.className="grp where";
+  ap.innerHTML='<h3>আবেদন ও সার্কুলার</h3><p><b>আবেদন (২০২৬-২৭):</b> <span></span></p><p><b>সার্কুলার:</b> <span></span></p>';
+  const as=ap.querySelectorAll("span");as[0].textContent=e.a[0];as[1].textContent=e.a[1];d.appendChild(ap);
+  e.subs.forEach(g=>{const s=document.createElement("div");s.className="grp";
+    const h=document.createElement("h3");h.textContent=g[0]+" ("+bn(g[1].length)+"টি)";s.appendChild(h);
+    const c=document.createElement("div");c.className="chips";g[1].forEach(x=>c.appendChild(chip(x)));s.appendChild(c);d.appendChild(s);});
+  $("hBack").hidden=!(near&&picked!==null&&e.i!==near.i);
+}
+function renderList(){
+  const now=Date.now(), dh=new Date(now+OFF), todayNo=Math.floor((now+OFF)/864e5);
+  $("today").textContent=bn(dh.getUTCDate())+" "+MON[dh.getUTCMonth()]+" "+bn(dh.getUTCFullYear());
+  const isDone=e=>now>e.ts+3600e3; // পরীক্ষা শুরুর ১ ঘণ্টা পর থেকে "শেষ"
+  const doneN=EXAMS.filter(isDone).length, tb=$("t-done");
+  tb.disabled=doneN===0; tb.setAttribute("aria-pressed",hideDone&&doneN>0);
+  tb.textContent=doneN===0?"এখনো কোনো পরীক্ষা শেষ হয়নি":hideDone?"শেষ হওয়া "+bn(doneN)+"টি পরীক্ষা সরানো আছে · আবার দেখাও":"শেষ হওয়া "+bn(doneN)+"টি পরীক্ষা সরাও";
+  let shown=EXAMS.filter(e=>(filter==="all"||e.t===filter)&&!(hideDone&&isDone(e)));
+  if(sort==="far")shown=shown.slice().reverse();
+  $("count").textContent=bn(shown.length);
+  const groups=new Map();
+  shown.forEach(e=>{const k=MON[e.m-1]+" "+bn(e.y);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);});
+  const main=$("list");main.innerHTML="";
+  if(!shown.length){const p=document.createElement("p");p.className="empty";p.textContent="এখানে দেখানোর মতো কোনো পরীক্ষা নেই।";main.appendChild(p);}
+  const cur=current();
+  groups.forEach((arr,k)=>{
+    const sec=document.createElement("section");
+    const h=document.createElement("h2");h.textContent=k;sec.appendChild(h);
+    const box=document.createElement("div");box.className="cards";
+    arr.forEach(e=>{
+      const left=e.dayNo-todayNo, done=now>e.ts+3600e3;
+      const r=document.createElement("button");r.type="button";
+      r.className="row"+(done||left<0?" done":left<=30?" soon":"")+(cur&&cur.i===e.i?" sel":"");
+      const ml=monthsLeft(todayNo,e);
+      const dz=done||left<0?'<b>শেষ</b>':left===0?'<b>আজ</b><span>পরীক্ষা</span>':'<b>'+bn(left)+'</b><span>দিন বাকি</span>'+(ml?'<em>'+ml+'</em>':'');
+      r.innerHTML='<div class="days">'+dz+'</div><div class="info"><div class="name"></div><div class="meta"><span></span><span></span></div><div class="chips"></div></div>';
+      const nm=r.querySelector(".name");nm.textContent=e.n;
+      const tg=document.createElement("span");tg.className="tag "+e.t;tg.textContent=e.t==="m"?"মানবিক ইউনিট":"অন্য ইউনিট";nm.appendChild(tg);
+      const sp=r.querySelectorAll(".meta span");sp[0].textContent=dateBn(e);sp[1].textContent=timeBn(e);
+      const cs=r.querySelector(".chips"), MAX=6;
+      const pl=document.createElement("div");pl.className="place";
+      pl.innerHTML='<b>এবার কোথায়:</b> <span></span>';pl.querySelector("span").textContent=e.c[0];
+      cs.before(pl);
+      const al=document.createElement("div");al.className="place";
+      al.innerHTML='<b>আবেদন:</b> <span></span>';al.querySelector("span").textContent=e.a[0];
+      cs.before(al);
+      e.flat.slice(0,MAX).forEach(x=>cs.appendChild(chip(x)));
+      if(e.flat.length>MAX)cs.appendChild(chip("+ আরও "+bn(e.flat.length-MAX)+"টি","more"));
+      r.addEventListener("click",()=>{picked=e.i;renderHero();renderList();tick();
+        $("hero").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});});
+      box.appendChild(r);
+    });
+    sec.appendChild(box);main.appendChild(sec);
+  });
+}
+function tick(){
+  const e=current(), set=(id,v)=>$(id).textContent=v;
+  let s=e?Math.max(0,Math.floor((e.ts-Date.now())/1000)):0;
+  set("cd",bn(Math.floor(s/86400)));set("ch",bn(p2(Math.floor(s%86400/3600))));set("cm",bn(p2(Math.floor(s%3600/60))));set("cs",bn(p2(s%60)));
+}
+function press(sel,b){document.querySelectorAll(sel).forEach(x=>x.setAttribute("aria-pressed",x===b));}
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.f;press("[data-f]",b);renderList();}));
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>{sort=b.dataset.s;press("[data-s]",b);renderList();}));
+$("t-done").addEventListener("click",()=>{hideDone=!hideDone;try{localStorage.setItem("hideDone",hideDone?"1":"0");}catch(_){}renderList();});
+$("hBack").addEventListener("click",()=>{picked=null;renderHero();renderList();tick();});
+renderHero();renderList();tick();
+setInterval(tick,1000);
+setInterval(()=>{renderHero();renderList();},60000);
+</script>
+
+</body></html>
